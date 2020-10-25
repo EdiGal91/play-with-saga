@@ -1,17 +1,20 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
+import { render } from 'react-dom';
+import { compose, createStore, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux'
+import thunk from 'redux-thunk';
+import createSagaMiddleware from 'redux-saga';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import { reducer } from './store/reducers';
+import { sagaWatcher } from './store/sagas';
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+const sagaMiddleware = createSagaMiddleware()
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+
+const devToolExt = window.__REDUX_DEVTOOLS_EXTENSION__;
+const devTool = devToolExt && devToolExt ();
+const thunkMiddleware = applyMiddleware(thunk, sagaMiddleware);
+
+const store = createStore(reducer, compose(thunkMiddleware, devTool));
+sagaMiddleware.run(sagaWatcher)
+render(<Provider store={store}><App/></Provider>, document.getElementById('root'));
